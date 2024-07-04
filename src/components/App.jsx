@@ -12,15 +12,9 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-   
-    if (searchTerm.trim() !== "") {
-      handleSearch(); 
-    }
-  }, [page, searchTerm]);
-
-
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
+    if (searchTerm.trim() === "") return;
+    
     try {
       setLoading(true);
       const imageData = await getImages(searchTerm, page);
@@ -33,11 +27,14 @@ function App() {
       });
     } catch (error) {
       console.error("Error fetching images:", error);
-    }
-    finally {
+    } finally {
       setLoading(false); 
     }
-  };
+  }, [searchTerm, page]);
+
+  useEffect(() => {
+    handleSearch();
+  }, [page, searchTerm, handleSearch]);
 
   const handleLoadMore = () => {
     setPage((prevPage) => prevPage + 1);
@@ -49,16 +46,14 @@ function App() {
   };
 
   return (
-    <div >
+    <div className={styles.appContainer}>
       <SearchBar onSearch={handleSearchInput} />
-
       <ImageGallery images={images} />
       <div className={styles.btnContainer}>
-      {loading && <Loader />}
-      {searchTerm.trim() !== "" && !loading &&  (
+        {loading && <Loader />}
+        {searchTerm.trim() !== "" && !loading && (
           <LoadBtn onClick={handleLoadMore} />
         )}
-      
       </div>
     </div>
   );
